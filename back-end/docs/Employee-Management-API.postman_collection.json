@@ -1,0 +1,838 @@
+{
+	"info": {
+		"_postman_id": "employee-management-api",
+		"name": "Employee Management API",
+		"description": "GraphQL API untuk Employee Management System dengan authentication JWT sesuai ERD",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const jsonData = pm.response.json();",
+									"    if (jsonData.data && jsonData.data.login && jsonData.data.login.access_token) {",
+									"        pm.environment.set(\"access_token\", jsonData.data.login.access_token);",
+									"        console.log(\"Access token saved to environment\");",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "mutation Login($email: String!, $password: String!) {\n  login(email: $email, password: $password) {\n    access_token\n  }\n}",
+								"variables": "{\n  \"email\": \"admin@company.com\",\n  \"password\": \"password123\"\n}"
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/graphql",
+							"host": ["{{base_url}}"],
+							"path": ["graphql"]
+						},
+						"description": "Login untuk mendapatkan JWT access token"
+					},
+					"response": []
+				},
+				{
+					"name": "Register",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "mutation Register($username: String!, $email: String!, $password: String!, $role: UserRole) {\n  register(username: $username, email: $email, password: $password, role: $role) {\n    access_token\n  }\n}",
+								"variables": "{\n  \"username\": \"newuser\",\n  \"email\": \"newuser@company.com\",\n  \"password\": \"password123\",\n  \"role\": \"EMPLOYEE\"\n}"
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/graphql",
+							"host": ["{{base_url}}"],
+							"path": ["graphql"]
+						},
+						"description": "Register user baru dengan username, email, password, dan role"
+					},
+					"response": []
+				},
+				{
+					"name": "Create User (Admin Only)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "mutation CreateUser($username: String!, $email: String!, $password: String!, $role: UserRole) {\n  createUser(username: $username, email: $email, password: $password, role: $role) {\n    id\n    username\n    email\n    role\n    createdAt\n    updatedAt\n  }\n}",
+								"variables": "{\n  \"username\": \"employee2\",\n  \"email\": \"employee2@company.com\",\n  \"password\": \"password123\",\n  \"role\": \"EMPLOYEE\"\n}"
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/graphql",
+							"host": ["{{base_url}}"],
+							"path": ["graphql"]
+						},
+						"description": "Membuat user baru (Admin) untuk kemudian dikaitkan ke employee"
+					},
+					"response": []
+				},
+				{
+					"name": "Auth Me",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "query AuthMe {\n  authMe {\n    id\n    username\n    email\n    role\n    createdAt\n    updatedAt\n  }\n}",
+								"variables": "{}"
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/graphql",
+							"host": ["{{base_url}}"],
+							"path": ["graphql"]
+						},
+						"description": "Mendapatkan informasi user yang sedang login berdasarkan token"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Employees",
+			"item": [
+				{
+					"name": "List Employees",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "query ListEmployees {\n  employees {\n    id\n    userId\n    fullName\n    age\n    class\n    subjects\n    createdAt\n    updatedAt\n  }\n}",
+								"variables": "{}"
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/graphql",
+							"host": ["{{base_url}}"],
+							"path": ["graphql"]
+						},
+						"description": "Mendapatkan list semua employees sesuai ERD"
+					},
+					"response": []
+				},
+				{
+					"name": "List Employees with Filter, Sort, and Pagination",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "query ListEmployees($filter: EmployeeFilter, $sort: SortInput, $page: Int, $limit: Int) {\n  employees(filter: $filter, sort: $sort, page: $page, limit: $limit) {\n    id\n    userId\n    fullName\n    age\n    class\n    subjects\n    createdAt\n    updatedAt\n  }\n}",
+								"variables": "{\n  \"filter\": {\n    \"fullName\": \"Sarah\",\n    \"class\": \"Senior\"\n  },\n  \"sort\": {\n    \"field\": \"fullName\",\n    \"order\": \"ASC\"\n  },\n  \"page\": 1,\n  \"limit\": 10\n}"
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/graphql",
+							"host": ["{{base_url}}"],
+							"path": ["graphql"]
+						},
+						"description": "List employees dengan filter, sort, dan pagination menggunakan page dan limit. Sorting hanya tersedia untuk field: fullName, age, dan class."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Employees Pagination Info",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "query EmployeesPagination($filter: EmployeeFilter, $page: Int, $limit: Int) {\n  employeesPagination(filter: $filter, page: $page, limit: $limit) {\n    totalCount\n    totalPages\n    currentPage\n    limit\n    hasNextPage\n    hasPreviousPage\n  }\n}",
+								"variables": "{\n  \"filter\": {\n    \"fullName\": \"Sarah\"\n  },\n  \"page\": 1,\n  \"limit\": 10\n}"
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/graphql",
+							"host": ["{{base_url}}"],
+							"path": ["graphql"]
+						},
+						"description": "Mendapatkan informasi pagination untuk employees (totalCount, totalPages, dll)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Employee by ID",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "query GetEmployee($id: String!) {\n  employee(id: $id) {\n    id\n    userId\n    fullName\n    age\n    class\n    subjects\n    createdAt\n    updatedAt\n  }\n}",
+								"variables": "{\n  \"id\": \"employee-id-here\"\n}"
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/graphql",
+							"host": ["{{base_url}}"],
+							"path": ["graphql"]
+						},
+						"description": "Mendapatkan detail employee berdasarkan ID sesuai ERD"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Employee (Admin Only)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "mutation CreateEmployee($input: EmployeeInput!) {\n  createEmployee(input: $input) {\n    id\n    userId\n    fullName\n    age\n    class\n    subjects\n    createdAt\n    updatedAt\n  }\n}",
+								"variables": "{\n  \"input\": {\n    \"userId\": \"user-uuid-here\",\n    \"fullName\": \"John Doe\",\n    \"age\": 30,\n    \"class\": \"Mid\",\n    \"subjects\": [\"Software Development\", \"System Design\"]\n  }\n}"
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/graphql",
+							"host": ["{{base_url}}"],
+							"path": ["graphql"]
+						},
+						"description": "Membuat employee baru sesuai ERD (hanya Admin)"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Employee (Admin Only)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "mutation UpdateEmployee($id: String!, $input: EmployeeUpdateInput!) {\n  updateEmployee(id: $id, input: $input) {\n    id\n    userId\n    fullName\n    age\n    class\n    subjects\n    updatedAt\n  }\n}",
+								"variables": "{\n  \"id\": \"employee-id-here\",\n  \"input\": {\n    \"fullName\": \"John Doe Updated\",\n    \"age\": 31,\n    \"class\": \"Senior\"\n  }\n}"
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/graphql",
+							"host": ["{{base_url}}"],
+							"path": ["graphql"]
+						},
+						"description": "Update employee sesuai ERD (hanya Admin)"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Employee (Admin Only)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "mutation DeleteEmployee($id: String!) {\n  deleteEmployee(id: $id)\n}",
+								"variables": "{\n  \"id\": \"employee-id-here\"\n}"
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/graphql",
+							"host": ["{{base_url}}"],
+							"path": ["graphql"]
+						},
+						"description": "Hapus employee (hanya Admin)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Employee Statistics",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "query EmployeeStatistics {\n  employeeStatistics {\n    totalEmployees\n    activeEmployees\n    avgAttendance\n    onLeave\n  }\n}",
+								"variables": "{}"
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/graphql",
+							"host": ["{{base_url}}"],
+							"path": ["graphql"]
+						},
+						"description": "Mendapatkan statistik employees: Total Employees, Active Employees, Avg. Attendance, dan On Leave"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Attendance",
+			"item": [
+				{
+					"name": "List Attendance",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "query ListAttendance($filter: AttendanceFilter, $sort: SortInput, $page: Int, $limit: Int) {\n  attendance(filter: $filter, sort: $sort, page: $page, limit: $limit) {\n    id\n    employeeId\n    date\n    status\n    note\n    createdAt\n    updatedAt\n  }\n}",
+								"variables": "{}"
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/graphql",
+							"host": ["{{base_url}}"],
+							"path": ["graphql"]
+						},
+						"description": "Mendapatkan list semua attendance records dengan pagination menggunakan page dan limit"
+					},
+					"response": []
+				},
+				{
+					"name": "List Attendance with Filter, Sort, and Pagination",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "query ListAttendance($filter: AttendanceFilter, $sort: SortInput, $page: Int, $limit: Int) {\n  attendance(filter: $filter, sort: $sort, page: $page, limit: $limit) {\n    id\n    employeeId\n    date\n    status\n    note\n    createdAt\n    updatedAt\n  }\n}",
+								"variables": "{\n  \"filter\": {\n    \"employeeId\": \"employee-uuid-here\",\n    \"date\": \"2025-12-03\",\n    \"status\": \"PRESENT\"\n  },\n  \"sort\": {\n    \"field\": \"date\",\n    \"order\": \"DESC\"\n  },\n  \"page\": 1,\n  \"limit\": 10\n}"
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/graphql",
+							"host": ["{{base_url}}"],
+							"path": ["graphql"]
+						},
+						"description": "List attendance dengan filter dan pagination"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Attendance by ID",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "query GetAttendance($id: String!) {\n  attendanceById(id: $id) {\n    id\n    employeeId\n    date\n    status\n    note\n    createdAt\n    updatedAt\n  }\n}",
+								"variables": "{\n  \"id\": \"attendance-uuid-here\"\n}"
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/graphql",
+							"host": ["{{base_url}}"],
+							"path": ["graphql"]
+						},
+						"description": "Mendapatkan detail attendance berdasarkan ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Mark Attendance (Admin Only)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "mutation MarkAttendance($input: AttendanceInput!) {\n  markAttendance(input: $input) {\n    id\n    employeeId\n    date\n    status\n    note\n    createdAt\n    updatedAt\n  }\n}",
+								"variables": "{\n  \"input\": {\n    \"employeeId\": \"employee-uuid-here\",\n    \"date\": \"2025-12-03\",\n    \"status\": \"present\",\n    \"note\": \"On time\"\n  }\n}"
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/graphql",
+							"host": ["{{base_url}}"],
+							"path": ["graphql"]
+						},
+						"description": "Membuat attendance record baru (hanya Admin). Satu employee hanya bisa punya 1 record per hari."
+					},
+					"response": []
+				},
+				{
+					"name": "Update Attendance (Admin Only)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "mutation UpdateAttendance($id: String!, $input: AttendanceUpdateInput!) {\n  updateAttendance(id: $id, input: $input) {\n    id\n    employeeId\n    date\n    status\n    note\n    updatedAt\n  }\n}",
+								"variables": "{\n  \"id\": \"attendance-uuid-here\",\n  \"input\": {\n    \"status\": \"late\",\n    \"note\": \"Arrived 15 minutes late\"\n  }\n}"
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/graphql",
+							"host": ["{{base_url}}"],
+							"path": ["graphql"]
+						},
+						"description": "Update attendance record (hanya Admin)"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Attendance (Admin Only)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "mutation DeleteAttendance($id: String!) {\n  deleteAttendance(id: $id)\n}",
+								"variables": "{\n  \"id\": \"attendance-uuid-here\"\n}"
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/graphql",
+							"host": ["{{base_url}}"],
+							"path": ["graphql"]
+						},
+						"description": "Hapus attendance record (hanya Admin)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Attendance Statistics",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "query AttendanceStatistics {\n  attendanceStatistics {\n    totalPresent\n    totalAbsent\n    totalLate\n    totalExcused\n    attendanceRate\n  }\n}",
+								"variables": "{}"
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/graphql",
+							"host": ["{{base_url}}"],
+							"path": ["graphql"]
+						},
+						"description": "Mendapatkan statistik attendance: Total Present, Total Absent, Late, Excused, dan Attendance Rate"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "User Management",
+			"item": [
+				{
+					"name": "List Users",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "query ListUsers($filter: UserFilter, $sort: SortInput, $limit: Int, $offset: Int) {\n  users(filter: $filter, sort: $sort, limit: $limit, offset: $offset) {\n    id\n    username\n    email\n    role\n    createdAt\n    updatedAt\n  }\n}",
+								"variables": "{}"
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/graphql",
+							"host": ["{{base_url}}"],
+							"path": ["graphql"]
+						},
+						"description": "Mendapatkan list semua users"
+					},
+					"response": []
+				},
+				{
+					"name": "List Users with Filter and Sort",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "query ListUsers($filter: UserFilter, $sort: SortInput, $limit: Int, $offset: Int) {\n  users(filter: $filter, sort: $sort, limit: $limit, offset: $offset) {\n    id\n    username\n    email\n    role\n    createdAt\n    updatedAt\n  }\n}",
+								"variables": "{\n  \"filter\": {\n    \"username\": \"john\",\n    \"role\": \"EMPLOYEE\"\n  },\n  \"sort\": {\n    \"field\": \"createdAt\",\n    \"order\": \"DESC\"\n  },\n  \"limit\": 10,\n  \"offset\": 0\n}"
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/graphql",
+							"host": ["{{base_url}}"],
+							"path": ["graphql"]
+						},
+						"description": "List users dengan filter, sort, dan pagination"
+					},
+					"response": []
+				},
+				{
+					"name": "Get User by ID",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "query GetUser($id: String!) {\n  user(id: $id) {\n    id\n    username\n    email\n    role\n    createdAt\n    updatedAt\n  }\n}",
+								"variables": "{\n  \"id\": \"user-uuid-here\"\n}"
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/graphql",
+							"host": ["{{base_url}}"],
+							"path": ["graphql"]
+						},
+						"description": "Mendapatkan user berdasarkan ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Create User (Admin Only)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "mutation CreateUser($username: String!, $email: String!, $password: String!, $role: UserRole) {\n  createUser(username: $username, email: $email, password: $password, role: $role) {\n    id\n    username\n    email\n    role\n    createdAt\n    updatedAt\n  }\n}",
+								"variables": "{\n  \"username\": \"newuser\",\n  \"email\": \"newuser@company.com\",\n  \"password\": \"password123\",\n  \"role\": \"EMPLOYEE\"\n}"
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/graphql",
+							"host": ["{{base_url}}"],
+							"path": ["graphql"]
+						},
+						"description": "Membuat user baru (hanya Admin)"
+					},
+					"response": []
+				},
+				{
+					"name": "Update User (Admin Only)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "mutation UpdateUser($id: String!, $username: String, $email: String, $role: UserRole) {\n  updateUser(id: $id, username: $username, email: $email, role: $role) {\n    id\n    username\n    email\n    role\n    updatedAt\n  }\n}",
+								"variables": "{\n  \"id\": \"user-uuid-here\",\n  \"username\": \"updated_username\",\n  \"email\": \"updated@company.com\",\n  \"role\": \"ADMIN\"\n}"
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/graphql",
+							"host": ["{{base_url}}"],
+							"path": ["graphql"]
+						},
+						"description": "Update user (hanya Admin)"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete User (Admin Only)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "mutation DeleteUser($id: String!) {\n  deleteUser(id: $id)\n}",
+								"variables": "{\n  \"id\": \"user-uuid-here\"\n}"
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/graphql",
+							"host": ["{{base_url}}"],
+							"path": ["graphql"]
+						},
+						"description": "Hapus user (hanya Admin)"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Health Check",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/health",
+					"host": ["{{base_url}}"],
+					"path": ["health"]
+				},
+				"description": "Health check endpoint untuk memastikan API berjalan"
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:9100",
+			"type": "string"
+		},
+		{
+			"key": "access_token",
+			"value": "",
+			"type": "string"
+		}
+	]
+}

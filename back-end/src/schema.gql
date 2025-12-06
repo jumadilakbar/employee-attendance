@@ -1,0 +1,169 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type Attendance {
+  createdAt: DateTime!
+  date: String!
+  employeeId: String!
+  id: String!
+  note: String
+  status: AttendanceStatus!
+  updatedAt: DateTime!
+}
+
+input AttendanceFilter {
+  date: String
+  employeeId: String
+  status: AttendanceStatus
+}
+
+input AttendanceInput {
+  date: String!
+  employeeId: String!
+  note: String
+  status: AttendanceStatus!
+}
+
+type AttendanceStatistics {
+  attendanceRate: Int!
+  totalAbsent: Int!
+  totalExcused: Int!
+  totalLate: Int!
+  totalPresent: Int!
+}
+
+enum AttendanceStatus {
+  ABSENT
+  EXCUSED
+  LATE
+  PRESENT
+}
+
+input AttendanceUpdateInput {
+  date: String
+  employeeId: String
+  note: String
+  status: AttendanceStatus
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type Employee {
+  age: Int
+  attendancePercentage: Int
+  class: String
+  createdAt: DateTime!
+  fullName: String!
+  id: String!
+  subjects: [String!]
+  totalAttendance: Int
+  updatedAt: DateTime!
+  userId: String
+}
+
+input EmployeeFilter {
+  age: Int
+  class: String
+  fullName: String
+  subject: String
+  userId: String
+}
+
+input EmployeeInput {
+  age: Int
+  class: String
+  fullName: String!
+  subjects: [String!]
+  userId: String
+}
+
+type EmployeeStatistics {
+  activeEmployees: Int!
+  avgAttendance: Int!
+  onLeave: Int!
+  totalEmployees: Int!
+}
+
+input EmployeeUpdateInput {
+  age: Int
+  class: String
+  fullName: String
+  subjects: [String!]
+  userId: String
+}
+
+type LoginResponse {
+  access_token: String!
+}
+
+type Mutation {
+  createEmployee(input: EmployeeInput!): Employee!
+  createUser(email: String!, password: String!, role: UserRole = EMPLOYEE, username: String!): User!
+  deleteAttendance(id: String!): Boolean!
+  deleteEmployee(id: String!): Boolean!
+  deleteUser(id: String!): Boolean!
+  login(email: String!, password: String!): LoginResponse!
+  markAttendance(input: AttendanceInput!): Attendance!
+  register(email: String!, password: String!, role: String = "EMPLOYEE", username: String!): LoginResponse!
+  updateAttendance(id: String!, input: AttendanceUpdateInput!): Attendance!
+  updateEmployee(id: String!, input: EmployeeUpdateInput!): Employee!
+  updateUser(email: String, id: String!, role: UserRole, username: String): User!
+}
+
+type PaginationInfo {
+  currentPage: Int!
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  limit: Int!
+  totalCount: Int!
+  totalPages: Int!
+}
+
+type Query {
+  attendance(filter: AttendanceFilter, limit: Int = 10, page: Int = 1, sort: SortInput): [Attendance!]!
+  attendanceById(id: String!): Attendance
+  attendancePagination(filter: AttendanceFilter, limit: Int = 10, page: Int = 1): PaginationInfo!
+  attendanceStatistics: AttendanceStatistics!
+  authMe: User!
+  employee(id: String!): Employee
+  employeeStatistics: EmployeeStatistics!
+  employees(filter: EmployeeFilter, limit: Int = 10, page: Int = 1, sort: SortInput): [Employee!]!
+  employeesPagination(filter: EmployeeFilter, limit: Int = 10, page: Int = 1): PaginationInfo!
+  user(id: String!): User
+  users(filter: UserFilter, limit: Int = 10, page: Int = 1, sort: SortInput): [User!]!
+  usersPagination(filter: UserFilter, limit: Int = 10, page: Int = 1): PaginationInfo!
+}
+
+input SortInput {
+  field: String
+  order: SortOrder
+}
+
+enum SortOrder {
+  ASC
+  DESC
+}
+
+type User {
+  createdAt: DateTime!
+  email: String!
+  id: String!
+  role: UserRole!
+  updatedAt: DateTime!
+  username: String!
+}
+
+input UserFilter {
+  email: String
+  role: UserRole
+  username: String
+}
+
+enum UserRole {
+  ADMIN
+  EMPLOYEE
+}
