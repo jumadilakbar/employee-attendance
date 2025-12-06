@@ -8,6 +8,8 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { PublicRoute } from "@/components/auth/PublicRoute";
+import { RoleProtectedRoute } from "@/components/auth/RoleProtectedRoute";
+import { UserRole } from "@/types/graphql";
 import { apolloClient } from "@/lib/apollo-client";
 import LandingPage from "./pages/LandingPage";
 import Dashboard from "./pages/Dashboard";
@@ -73,9 +75,9 @@ const App = () => (
                 <Route
                   path="/users"
                   element={
-                    <ProtectedRoute>
+                    <RoleProtectedRoute allowedRoles={[UserRole.ADMIN]}>
                       <UserManagement />
-                    </ProtectedRoute>
+                    </RoleProtectedRoute>
                   }
                 />
                 

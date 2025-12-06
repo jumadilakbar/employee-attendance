@@ -1,8 +1,8 @@
-import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, ReactNode, useMemo } from 'react';
 import { useQuery, useMutation } from '@apollo/client/react';
 import { AUTH_ME_QUERY, AuthMeData } from '@/graphql/auth.queries';
 import { LOGIN_MUTATION, LoginVariables, LoginData } from '@/graphql/auth.queries';
-import { User } from '@/types/graphql';
+import { User, UserRole } from '@/types/graphql';
 
 interface AuthContextType {
   user: User | null;
@@ -11,6 +11,8 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   refetchUser: () => void;
+  isAdmin: boolean;
+  isEmployee: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -107,6 +109,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [user]);
 
+  // Compute role-based flags
+  const isAdmin = useMemo(() => user?.role === UserRole.ADMIN, [user?.role]);
+  const isEmployee = useMemo(() => user?.role === UserRole.EMPLOYEE, [user?.role]);
+
   return (
     <AuthContext.Provider
       value={{
@@ -116,6 +122,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         login,
         logout,
         refetchUser,
+        isAdmin,
+        isEmployee,
       }}
     >
       {children}

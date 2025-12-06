@@ -12,6 +12,7 @@ import { ViewMode } from '@/types/employee';
 import { Employee as GraphQLEmployee } from '@/types/graphql';
 import { useEmployees, useCreateEmployee, useUpdateEmployee, useDeleteEmployee, useEmployeeStatistics } from '@/hooks/use-employees';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 
 const ITEMS_PER_PAGE = 10;
@@ -30,6 +31,7 @@ const EmployeeManagement = () => {
   const [employeeToEdit, setEmployeeToEdit] = useState<GraphQLEmployee | null>(null);
   const [employeeToDelete, setEmployeeToDelete] = useState<GraphQLEmployee | null>(null);
   const { toast } = useToast();
+  const { isAdmin } = useAuth();
 
   // Build filter and sort variables
   const apiFilter = useMemo(() => {
@@ -238,13 +240,15 @@ const EmployeeManagement = () => {
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
           <SearchFilter searchQuery={searchQuery} onSearchChange={handleSearchChange} />
           <div className="flex items-center gap-3">
-            <Button
-              onClick={() => setIsCreateModalOpen(true)}
-              className="bg-primary hover:bg-primary/90"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Add Employee
-            </Button>
+            {isAdmin && (
+              <Button
+                onClick={() => setIsCreateModalOpen(true)}
+                className="bg-primary hover:bg-primary/90"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Employee
+              </Button>
+            )}
             <ViewToggle viewMode={viewMode} onViewModeChange={setViewMode} />
           </div>
         </div>
@@ -263,8 +267,8 @@ const EmployeeManagement = () => {
               <EmployeeGrid
                 employees={employees}
                 onSelectEmployee={setSelectedEmployee}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
+                onEdit={isAdmin ? handleEdit : undefined}
+                onDelete={isAdmin ? handleDelete : undefined}
                 sortField={sortField}
                 sortOrder={sortOrder}
                 onSortChange={(field, order) => {
@@ -280,9 +284,9 @@ const EmployeeManagement = () => {
               <EmployeeTileView
                 employees={employees}
                 onSelectEmployee={setSelectedEmployee}
-                onEdit={handleEdit}
+                onEdit={isAdmin ? handleEdit : undefined}
                 onFlag={handleFlag}
-                onDelete={handleDelete}
+                onDelete={isAdmin ? handleDelete : undefined}
               />
             )}
           </>
@@ -299,41 +303,47 @@ const EmployeeManagement = () => {
           <EmployeeDetailModal
             employee={selectedEmployee}
             onClose={() => setSelectedEmployee(null)}
-            onEdit={handleEdit}
+            onEdit={isAdmin ? handleEdit : undefined}
           />
         )}
 
-        {/* Create Employee Modal */}
-        <EmployeeFormModal
-          isOpen={isCreateModalOpen}
-          onClose={() => setIsCreateModalOpen(false)}
-          onSubmit={handleCreate}
-          loading={createLoading}
-        />
+                {/* Create Employee Modal - Admin Only */}
+                {isAdmin && (
+                  <EmployeeFormModal
+                    isOpen={isCreateModalOpen}
+                    onClose={() => setIsCreateModalOpen(false)}
+                    onSubmit={handleCreate}
+                    loading={createLoading}
+                  />
+                )}
 
-        {/* Edit Employee Modal */}
-        <EmployeeFormModal
-          isOpen={isEditModalOpen}
-          onClose={() => {
-            setIsEditModalOpen(false);
-            setEmployeeToEdit(null);
-          }}
-          employee={employeeToEdit}
-          onSubmit={handleUpdate}
-          loading={updateLoading}
-        />
+                {/* Edit Employee Modal - Admin Only */}
+                {isAdmin && (
+                  <EmployeeFormModal
+                    isOpen={isEditModalOpen}
+                    onClose={() => {
+                      setIsEditModalOpen(false);
+                      setEmployeeToEdit(null);
+                    }}
+                    employee={employeeToEdit}
+                    onSubmit={handleUpdate}
+                    loading={updateLoading}
+                  />
+                )}
 
-        {/* Delete Employee Dialog */}
-        <DeleteEmployeeDialog
-          isOpen={isDeleteDialogOpen}
-          onClose={() => {
-            setIsDeleteDialogOpen(false);
-            setEmployeeToDelete(null);
-          }}
-          employee={employeeToDelete}
-          onConfirm={handleConfirmDelete}
-          loading={deleteLoading}
-        />
+                {/* Delete Employee Dialog - Admin Only */}
+                {isAdmin && (
+                  <DeleteEmployeeDialog
+                    isOpen={isDeleteDialogOpen}
+                    onClose={() => {
+                      setIsDeleteDialogOpen(false);
+                      setEmployeeToDelete(null);
+                    }}
+                    employee={employeeToDelete}
+                    onConfirm={handleConfirmDelete}
+                    loading={deleteLoading}
+                  />
+                )}
       </main>
     </div>
   );

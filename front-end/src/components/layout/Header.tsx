@@ -13,12 +13,14 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
+import { UserRole } from '@/types/graphql';
 
 interface NavItem {
   label: string;
   href: string;
   icon?: React.ReactNode;
   children?: NavItem[];
+  allowedRoles?: UserRole[]; // Optional: restrict menu item to specific roles
 }
 
 const navItems: NavItem[] = [
@@ -33,7 +35,7 @@ const navItems: NavItem[] = [
     ]
   },
   { label: 'Attendance', href: '/attendance', icon: <FileText className="h-4 w-4" /> },
-  { label: 'User Management', href: '/users', icon: <User className="h-4 w-4" /> },
+  { label: 'User Management', href: '/users', icon: <User className="h-4 w-4" />, allowedRoles: [UserRole.ADMIN] },
 ];
 
 interface HeaderProps {
@@ -43,9 +45,16 @@ interface HeaderProps {
 export function Header({ onLoginClick }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeSubmenu, setActiveSubmenu] = useState<string | null>(null);
-  const { isAuthenticated, user, logout } = useAuth();
+  const { isAuthenticated, user, logout, isAdmin } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Filter nav items based on user role
+  const filteredNavItems = navItems.filter((item) => {
+    if (!item.allowedRoles) return true; // Show if no role restriction
+    if (!user) return false;
+    return item.allowedRoles.includes(user.role);
+  });
 
   const toggleSubmenu = (label: string) => {
     setActiveSubmenu(activeSubmenu === label ? null : label);
@@ -75,7 +84,7 @@ export function Header({ onLoginClick }: HeaderProps) {
         {/* Desktop Navigation */}
         {isAuthenticated && (
         <nav className="hidden md:flex items-center gap-1">
-          {navItems.map((item) => (
+          {filteredNavItems.map((item) => (
             <div key={item.label} className="relative group">
               <button
                   onClick={() => handleNavClick(item.href)}
@@ -188,7 +197,7 @@ export function Header({ onLoginClick }: HeaderProps) {
         )}
       >
         <nav className="container py-4 space-y-1">
-          {navItems.map((item) => (
+          {filteredNavItems.map((item) => (
             <div key={item.label}>
               <button
                   onClick={() => {

@@ -18,6 +18,7 @@ import { Attendance as GraphQLAttendance, AttendanceStatus } from '@/types/graph
 import { AttendanceFormModal, AttendanceFormData } from '@/components/attendance/AttendanceFormModal';
 import { DeleteAttendanceDialog } from '@/components/attendance/DeleteAttendanceDialog';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -32,6 +33,7 @@ const Attendance = () => {
   const [attendanceToEdit, setAttendanceToEdit] = useState<GraphQLAttendance | null>(null);
   const [attendanceToDelete, setAttendanceToDelete] = useState<GraphQLAttendance | null>(null);
   const { toast } = useToast();
+  const { isAdmin } = useAuth();
 
   // Build filter for API
   const apiFilter = useMemo(() => {
@@ -310,17 +312,17 @@ const Attendance = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Employee Name</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Note</TableHead>
-                  <TableHead>Actions</TableHead>
+                                <TableHead>Employee Name</TableHead>
+                          <TableHead>Date</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Note</TableHead>
+                          {isAdmin && <TableHead>Actions</TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredAttendance.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                    <TableCell colSpan={isAdmin ? 5 : 4} className="text-center text-muted-foreground py-8">
                       No attendance records found
                     </TableCell>
                   </TableRow>
@@ -353,28 +355,30 @@ const Attendance = () => {
                           </span>
                         </TableCell>
                         <TableCell>{att.note || '-'}</TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleEdit(att)}
-                              className="h-8"
-                            >
-                              <Pencil className="h-3 w-3 mr-1" />
-                              Edit
-                            </Button>
-                            <Button
-                              variant="destructive"
-                              size="sm"
-                              onClick={() => handleDelete(att)}
-                              className="h-8"
-                            >
-                              <Trash2 className="h-3 w-3 mr-1" />
-                              Delete
-                            </Button>
-                          </div>
-                        </TableCell>
+                        {isAdmin && (
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleEdit(att)}
+                                className="h-8"
+                              >
+                                <Pencil className="h-3 w-3 mr-1" />
+                                Edit
+                              </Button>
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => handleDelete(att)}
+                                className="h-8"
+                              >
+                                <Trash2 className="h-3 w-3 mr-1" />
+                                Delete
+                              </Button>
+                            </div>
+                          </TableCell>
+                        )}
                       </TableRow>
                     );
                   })
@@ -398,38 +402,44 @@ const Attendance = () => {
           </div>
         )}
 
-        {/* Create Attendance Modal */}
-        <AttendanceFormModal
-          isOpen={isCreateModalOpen}
-          onClose={() => setIsCreateModalOpen(false)}
-          onSubmit={handleCreate}
-          loading={createLoading}
-        />
+                {/* Create Attendance Modal - Admin Only */}
+                {isAdmin && (
+                  <AttendanceFormModal
+                    isOpen={isCreateModalOpen}
+                    onClose={() => setIsCreateModalOpen(false)}
+                    onSubmit={handleCreate}
+                    loading={createLoading}
+                  />
+                )}
 
-        {/* Edit Attendance Modal */}
-        <AttendanceFormModal
-          isOpen={isEditModalOpen}
-          onClose={() => {
-            setIsEditModalOpen(false);
-            setAttendanceToEdit(null);
-          }}
-          attendance={attendanceToEdit}
-          onSubmit={handleUpdate}
-          loading={updateLoading}
-        />
+                {/* Edit Attendance Modal - Admin Only */}
+                {isAdmin && (
+                  <AttendanceFormModal
+                    isOpen={isEditModalOpen}
+                    onClose={() => {
+                      setIsEditModalOpen(false);
+                      setAttendanceToEdit(null);
+                    }}
+                    attendance={attendanceToEdit}
+                    onSubmit={handleUpdate}
+                    loading={updateLoading}
+                  />
+                )}
 
-        {/* Delete Attendance Dialog */}
-        <DeleteAttendanceDialog
-          isOpen={isDeleteDialogOpen}
-          onClose={() => {
-            setIsDeleteDialogOpen(false);
-            setAttendanceToDelete(null);
-          }}
-          attendance={attendanceToDelete}
-          employeeName={attendanceToDelete ? employeeMap.get(attendanceToDelete.employeeId) : undefined}
-          onConfirm={handleConfirmDelete}
-          loading={deleteLoading}
-        />
+                {/* Delete Attendance Dialog - Admin Only */}
+                {isAdmin && (
+                  <DeleteAttendanceDialog
+                    isOpen={isDeleteDialogOpen}
+                    onClose={() => {
+                      setIsDeleteDialogOpen(false);
+                      setAttendanceToDelete(null);
+                    }}
+                    attendance={attendanceToDelete}
+                    employeeName={attendanceToDelete ? employeeMap.get(attendanceToDelete.employeeId) : undefined}
+                    onConfirm={handleConfirmDelete}
+                    loading={deleteLoading}
+                  />
+                )}
       </main>
     </div>
   );
